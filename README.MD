@@ -1,6 +1,4 @@
-![Java](https://img.shields.io/badge/Java-21+-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x%20%7C%204.x-brightgreen)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![Java](https://img.shields.io/badge/Java-21+-blue) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x%20%7C%204.x-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) [![](https://jitpack.io/v/dhanesh76/d76-spring-boot-starter-exception.svg)](https://jitpack.io/#dhanesh76/d76-spring-boot-starter-exception)
 
 # d76-spring-boot-starter-exception
 
@@ -43,90 +41,75 @@ This starter solves both. Drop it in, define your error codes, and every service
 |-------------|------------|
 | Java        | 21+        |
 | Spring Boot | 3.x / 4.x  |
-| Maven       | 3.6+       |
 
 ---
 
 ## Installation
 
-This library is not yet published to Maven Central. Use one of the two options below.
+This library is distributed via [JitPack](https://jitpack.io/#dhanesh76/d76-spring-boot-starter-exception).
 
----
+### Maven
 
-### Option 1 — Install Locally (Recommended for Personal Use)
-
-Clone the repository and install it to your local Maven repository with a single command:
-
-```bash
-git clone https://github.com/dhanesh76/d76-spring-boot-starter-exception.git
-cd d76-spring-boot-starter-exception
-mvn clean install
-```
-
-This installs all three modules into your `~/.m2/repository`. Then add the starter to your project's `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>dev.d76</groupId>
-    <artifactId>d76-spring-boot-starter-exception</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-
-That's it. No further setup required.
-
----
-
-### Option 2 — Use as a Git Submodule (Recommended for Teams)
-
-If you want to share this across a team without a private registry, add it as a submodule inside your project:
-
-```bash
-# Inside your project root
-git submodule add https://github.com/dhanesh76/d76-spring-boot-starter-exception.git libs/d76-spring-exception
-```
-
-Then reference it in your root `pom.xml` as a module:
-
-```xml
-<modules>
-    <module>libs/d76-spring-exception/d76-spring-exception-core</module>
-    <module>libs/d76-spring-exception/d76-spring-exception-autoconfigure</module>
-    <module>libs/d76-spring-exception/d76-spring-boot-starter-exception</module>
-    <module>your-service</module>
-</modules>
-```
-
-Now your service can depend on it as if it were a local module.
-
----
-
-### Option 3 — Host on a Private Registry (Recommended for Organizations)
-
-If your team uses a private Maven registry (Nexus, Artifactory, GitHub Packages), deploy the artifact there:
-
-```bash
-git clone https://github.com/dhanesh76/d76-spring-boot-starter-exception.git
-cd d76-spring-boot-starter-exception
-mvn clean deploy -DaltDeploymentRepository=your-repo-id::default::https://your-registry-url/repository/maven-releases/
-```
-
-Then configure your project's `pom.xml` to resolve from your registry:
+Add the JitPack repository and dependency to your `pom.xml`:
 
 ```xml
 <repositories>
     <repository>
-        <id>your-repo-id</id>
-        <url>https://your-registry-url/repository/maven-releases/</url>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
     </repository>
 </repositories>
 
-<dependency>
-    <groupId>dev.d76</groupId>
-    <artifactId>d76-spring-boot-starter-exception</artifactId>
-    <version>1.0.0</version>
-</dependency>
+<dependencies>
+    <dependency>
+        <groupId>com.github.dhanesh76</groupId>
+        <artifactId>d76-spring-boot-starter-exception</artifactId>
+        <version>v1.0.0</version>
+    </dependency>
+</dependencies>
 ```
+
+---
+
+### Gradle (Kotlin DSL)
+
+```kotlin
+repositories {
+    maven { url = uri("https://jitpack.io") }
+}
+
+dependencies {
+    implementation("com.github.dhanesh76:d76-spring-boot-starter-exception:v1.0.0")
+}
+```
+
+---
+
+### Gradle (Groovy DSL)
+
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.dhanesh76:d76-spring-boot-starter-exception:v1.0.0'
+}
+```
+
+---
+
+### Scala SBT
+
+```scala
+resolvers += "jitpack" at "https://jitpack.io"
+
+libraryDependencies += "com.github.dhanesh76" % "d76-spring-boot-starter-exception" % "v1.0.0"
+```
+
+---
+
+> **Note:** No authentication or token required. The repository is public and resolves immediately.
 
 ---
 
@@ -135,7 +118,7 @@ Then configure your project's `pom.xml` to resolve from your registry:
 The moment you add the dependency, three exception handlers are active:
 
 | Exception                         | HTTP Status                 | Behaviour                                  |
-|-----------------------------------|-----------------------------|--------------------------------------------|
+|-----------------------------------|-----------------------------|-------------------------------------------|
 | `BusinessException`               | Defined by your `ErrorCode` | Maps your domain error to a typed response |
 | `MethodArgumentNotValidException` | 400                         | Returns per-field validation failures      |
 | `Exception` (catch-all)           | 500                         | Prevents stack trace leakage to clients    |
@@ -233,8 +216,6 @@ The handler reads the HTTP status directly from your `ErrorCode` and maps it to 
 | `INTERNAL_SERVER_ERROR`  | 500    | Internal server error            |
 | `SERVICE_UNAVAILABLE`    | 503    | Service temporarily unavailable  |
 
-Use them directly or as a reference when defining your own enums.
-
 ---
 
 ## Adding Custom Fields — The Customizer Pattern
@@ -284,8 +265,6 @@ public ApiErrorResponseCustomizer authProviderCustomizer() {
     };
 }
 ```
-
-### How customizers work
 
 Multiple customizers can be registered. They are invoked sequentially and operate on the same response builder. Customizers are additive and cannot remove extensions added by others. The response is finalized and made immutable only after all customizers have run.
 
@@ -337,12 +316,18 @@ d76-spring-exception/
 
 If you have a non-web module — a Kafka consumer, a batch job, a shared domain library — depend on `d76-spring-exception-core` directly. It carries zero Spring Web dependency and lets you throw `BusinessException` anywhere Java runs.
 
+**Maven:**
 ```xml
 <dependency>
-    <groupId>dev.d76</groupId>
+    <groupId>com.github.dhanesh76</groupId>
     <artifactId>d76-spring-exception-core</artifactId>
-    <version>1.0.0</version>
+    <version>v1.0.0</version>
 </dependency>
+```
+
+**Gradle:**
+```kotlin
+implementation("com.github.dhanesh76:d76-spring-exception-core:v1.0.0")
 ```
 
 ---
@@ -358,15 +343,6 @@ This library is built on a small set of deliberate rules:
 - **Zero Spring dependency in core** — `ErrorCode` and `BusinessException` work anywhere Java runs
 
 The goal is consistency without control — your services speak the same error language, and you keep full ownership of the details.
-
----
-
-## Roadmap
-
-- [ ] Publish to Maven Central
-- [ ] `@ConditionalOnMissingBean` back-off implementation
-- [ ] `enabled` property implementation
-- [ ] Integration tests via `ApplicationContextRunner`
 
 ---
 
