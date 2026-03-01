@@ -1,4 +1,4 @@
-![Java](https://img.shields.io/badge/Java-21+-blue) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x%20%7C%204.x-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) [![](https://jitpack.io/v/dhanesh76/d76-spring-boot-starter-exception.svg)](https://jitpack.io/#dhanesh76/d76-spring-boot-starter-exception)
+![Java](https://img.shields.io/badge/Java-21+-blue) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x%20%7C%204.x-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Type](https://img.shields.io/badge/type-spring--boot--starter-orange) [![](https://jitpack.io/v/dhanesh76/d76-spring-boot-starter-exception.svg)](https://jitpack.io/#dhanesh76/d76-spring-boot-starter-exception)
 
 # d76-spring-boot-starter-exception
 
@@ -50,8 +50,6 @@ This library is distributed via [JitPack](https://jitpack.io/#dhanesh76/d76-spri
 
 ### Maven
 
-Add the JitPack repository and dependency to your `pom.xml`:
-
 ```xml
 <repositories>
     <repository>
@@ -69,8 +67,6 @@ Add the JitPack repository and dependency to your `pom.xml`:
 </dependencies>
 ```
 
----
-
 ### Gradle (Kotlin DSL)
 
 ```kotlin
@@ -82,8 +78,6 @@ dependencies {
     implementation("com.github.dhanesh76:d76-spring-boot-starter-exception:v1.0.0")
 }
 ```
-
----
 
 ### Gradle (Groovy DSL)
 
@@ -97,8 +91,6 @@ dependencies {
 }
 ```
 
----
-
 ### Scala SBT
 
 ```scala
@@ -107,9 +99,42 @@ resolvers += "jitpack" at "https://jitpack.io"
 libraryDependencies += "com.github.dhanesh76" % "d76-spring-boot-starter-exception" % "v1.0.0"
 ```
 
+> **Note:** No authentication or token required. The repository is public and resolves immediately.
+
 ---
 
-> **Note:** No authentication or token required. The repository is public and resolves immediately.
+## How It Works
+
+```
+Your Code
+   │
+   └── throw new BusinessException(UserErrorCode.USER_NOT_FOUND)
+                        │
+                        ▼
+          GlobalExceptionHandler          ← @RestControllerAdvice, auto-registered
+                        │
+                        ├── resolves HTTP status     ← from your ErrorCode
+                        ├── builds ApiErrorResponse  ← via response builder
+                        │
+                        ▼
+          ApiErrorResponseCustomizer[]    ← your beans, invoked in order
+                        │
+                        ├── builder.extension("traceId", ...)
+                        └── builder.extension("tenantId", ...)
+                                        │
+                                        ▼
+                        ApiErrorResponse (immutable)    ← Java record, sealed after all customizers
+                                        │
+                                        ▼
+                                JSON response to client
+```
+
+**Internally, the auto-configuration does four things:**
+
+1. Registers via `AutoConfiguration.imports` — no component scan or `@Enable` annotation needed
+2. Backs off entirely if you already have a `@RestControllerAdvice` bean (`@ConditionalOnMissingBean`)
+3. Backs off entirely if `d76.exception.enabled=false` (`@ConditionalOnProperty`)
+4. Collects all `ApiErrorResponseCustomizer` beans from the context and invokes them in order before sealing the response
 
 ---
 
@@ -218,9 +243,9 @@ The handler reads the HTTP status directly from your `ErrorCode` and maps it to 
 
 ---
 
-## Adding Custom Fields — The Customizer Pattern
+## Extending Responses — The Customizer Pattern
 
-Need `traceId`, `tenantId`, or any domain-specific field on your error responses? Register an `ApiErrorResponseCustomizer` bean. The handler invokes it before finalizing every response — no handler duplication, no library forking required.
+Need `traceId`, `tenantId`, or any platform-specific field on your error responses? Register an `ApiErrorResponseCustomizer` bean. The handler invokes all registered customizers before sealing the response — no handler duplication, no library forking required.
 
 ### Example — Attach a trace ID from a request header
 
@@ -266,17 +291,17 @@ public ApiErrorResponseCustomizer authProviderCustomizer() {
 }
 ```
 
-Multiple customizers can be registered. They are invoked sequentially and operate on the same response builder. Customizers are additive and cannot remove extensions added by others. The response is finalized and made immutable only after all customizers have run.
+Multiple customizers can be registered. They are invoked sequentially and operate on the same builder instance. Customizers are additive — they cannot remove fields added by earlier customizers. The response is finalized and made immutable only after all customizers have run.
 
 ---
 
-## Overriding the Global Handler
+## Back-off Behavior
 
 If your application defines its own `@RestControllerAdvice`, this starter automatically backs off and does not register its handler. Your handler takes full precedence — the starter is non-intrusive by design.
 
 ---
 
-## Disable Auto Configuration
+## Disabling Auto-Configuration
 
 Opt out entirely via application properties:
 
@@ -306,7 +331,7 @@ d76-spring-exception/
 │   ├── GlobalExceptionHandler.java         # @RestControllerAdvice + customizer pipeline
 │   └── web/
 │       ├── ApiErrorResponse.java           # Immutable record — the JSON contract
-│       └── ApiErrorResponseCustomizer.java # Extension hook for consumers
+│       └── ApiErrorResponseCustomizer.java # Extension point for consumers
 │
 └── d76-spring-boot-starter-exception       # The one dependency you actually add
     └── pom.xml                             # Pulls in autoconfigure transitively
@@ -343,6 +368,14 @@ This library is built on a small set of deliberate rules:
 - **Zero Spring dependency in core** — `ErrorCode` and `BusinessException` work anywhere Java runs
 
 The goal is consistency without control — your services speak the same error language, and you keep full ownership of the details.
+
+---
+
+## Roadmap
+
+- [] Publish to Maven Central
+- [ ] Integration tests via `ApplicationContextRunner`
+- [ ] `ProblemDetail` response format (RFC 9457) as an opt-in alternative
 
 ---
 
