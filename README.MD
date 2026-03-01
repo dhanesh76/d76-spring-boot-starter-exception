@@ -58,7 +58,7 @@ This library is not yet published to Maven Central. Use one of the two options b
 Clone the repository and install it to your local Maven repository with a single command:
 
 ```bash
-git clone https://github.com/d76/d76-spring-boot-starter-exception.git
+git clone https://github.com/dhanesh76/d76-spring-boot-starter-exception.git
 cd d76-spring-boot-starter-exception
 mvn clean install
 ```
@@ -83,7 +83,7 @@ If you want to share this across a team without a private registry, add it as a 
 
 ```bash
 # Inside your project root
-git submodule add https://github.com/d76/d76-spring-boot-starter-exception.git libs/d76-spring-exception
+git submodule add https://github.com/dhanesh76/d76-spring-boot-starter-exception.git libs/d76-spring-exception
 ```
 
 Then reference it in your root `pom.xml` as a module:
@@ -106,7 +106,7 @@ Now your service can depend on it as if it were a local module.
 If your team uses a private Maven registry (Nexus, Artifactory, GitHub Packages), deploy the artifact there:
 
 ```bash
-git clone https://github.com/d76/d76-spring-boot-starter-exception.git
+git clone https://github.com/dhanesh76/d76-spring-boot-starter-exception.git
 cd d76-spring-boot-starter-exception
 mvn clean deploy -DaltDeploymentRepository=your-repo-id::default::https://your-registry-url/repository/maven-releases/
 ```
