@@ -373,7 +373,7 @@ The goal is consistency without control — your services speak the same error l
 
 ## Roadmap
 
-- [] Publish to Maven Central
+- [ ] Publish to Maven Central
 - [ ] Integration tests via `ApplicationContextRunner`
 - [ ] `ProblemDetail` response format (RFC 9457) as an opt-in alternative
 
