@@ -1,4 +1,6 @@
-![Java](https://img.shields.io/badge/Java-21+-blue) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x%20%7C%204.x-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Type](https://img.shields.io/badge/type-spring--boot--starter-orange) [![](https://jitpack.io/v/dhanesh76/d76-spring-boot-starter-exception.svg)](https://jitpack.io/#dhanesh76/d76-spring-boot-starter-exception)
+![Java](https://img.shields.io/badge/Java-21+-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x%20%7C%204.x-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 # d76-spring-boot-starter-exception
 
@@ -41,100 +43,90 @@ This starter solves both. Drop it in, define your error codes, and every service
 |-------------|------------|
 | Java        | 21+        |
 | Spring Boot | 3.x / 4.x  |
+| Maven       | 3.6+       |
 
 ---
 
 ## Installation
 
-This library is distributed via [JitPack](https://jitpack.io/#dhanesh76/d76-spring-boot-starter-exception).
+This library is not yet published to Maven Central. Use one of the two options below.
 
-### Maven
+---
+
+### Option 1 — Install Locally (Recommended for Personal Use)
+
+Clone the repository and install it to your local Maven repository with a single command:
+
+```bash
+git clone https://github.com/d76/d76-spring-boot-starter-exception.git
+cd d76-spring-boot-starter-exception
+mvn clean install
+```
+
+This installs all three modules into your `~/.m2/repository`. Then add the starter to your project's `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>dev.d76</groupId>
+    <artifactId>d76-spring-boot-starter-exception</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+That's it. No further setup required.
+
+---
+
+### Option 2 — Use as a Git Submodule (Recommended for Teams)
+
+If you want to share this across a team without a private registry, add it as a submodule inside your project:
+
+```bash
+# Inside your project root
+git submodule add https://github.com/d76/d76-spring-boot-starter-exception.git libs/d76-spring-exception
+```
+
+Then reference it in your root `pom.xml` as a module:
+
+```xml
+<modules>
+    <module>libs/d76-spring-exception/d76-spring-exception-core</module>
+    <module>libs/d76-spring-exception/d76-spring-exception-autoconfigure</module>
+    <module>libs/d76-spring-exception/d76-spring-boot-starter-exception</module>
+    <module>your-service</module>
+</modules>
+```
+
+Now your service can depend on it as if it were a local module.
+
+---
+
+### Option 3 — Host on a Private Registry (Recommended for Organizations)
+
+If your team uses a private Maven registry (Nexus, Artifactory, GitHub Packages), deploy the artifact there:
+
+```bash
+git clone https://github.com/d76/d76-spring-boot-starter-exception.git
+cd d76-spring-boot-starter-exception
+mvn clean deploy -DaltDeploymentRepository=your-repo-id::default::https://your-registry-url/repository/maven-releases/
+```
+
+Then configure your project's `pom.xml` to resolve from your registry:
 
 ```xml
 <repositories>
     <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
+        <id>your-repo-id</id>
+        <url>https://your-registry-url/repository/maven-releases/</url>
     </repository>
 </repositories>
 
-<dependencies>
-    <dependency>
-        <groupId>com.github.dhanesh76</groupId>
-        <artifactId>d76-spring-boot-starter-exception</artifactId>
-        <version>v1.0.0</version>
-    </dependency>
-</dependencies>
+<dependency>
+    <groupId>dev.d76</groupId>
+    <artifactId>d76-spring-boot-starter-exception</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
-
-### Gradle (Kotlin DSL)
-
-```kotlin
-repositories {
-    maven { url = uri("https://jitpack.io") }
-}
-
-dependencies {
-    implementation("com.github.dhanesh76:d76-spring-boot-starter-exception:v1.0.0")
-}
-```
-
-### Gradle (Groovy DSL)
-
-```groovy
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-
-dependencies {
-    implementation 'com.github.dhanesh76:d76-spring-boot-starter-exception:v1.0.0'
-}
-```
-
-### Scala SBT
-
-```scala
-resolvers += "jitpack" at "https://jitpack.io"
-
-libraryDependencies += "com.github.dhanesh76" % "d76-spring-boot-starter-exception" % "v1.0.0"
-```
-
-> **Note:** No authentication or token required. The repository is public and resolves immediately.
-
----
-
-## How It Works
-
-```
-Your Code
-   │
-   └── throw new BusinessException(UserErrorCode.USER_NOT_FOUND)
-                        │
-                        ▼
-          GlobalExceptionHandler          ← @RestControllerAdvice, auto-registered
-                        │
-                        ├── resolves HTTP status     ← from your ErrorCode
-                        ├── builds ApiErrorResponse  ← via response builder
-                        │
-                        ▼
-          ApiErrorResponseCustomizer[]    ← your beans, invoked in order
-                        │
-                        ├── builder.extension("traceId", ...)
-                        └── builder.extension("tenantId", ...)
-                                        │
-                                        ▼
-                        ApiErrorResponse (immutable)    ← Java record, sealed after all customizers
-                                        │
-                                        ▼
-                                JSON response to client
-```
-
-**Internally, the auto-configuration does four things:**
-
-1. Registers via `AutoConfiguration.imports` — no component scan or `@Enable` annotation needed
-2. Backs off entirely if you already have a `@RestControllerAdvice` bean (`@ConditionalOnMissingBean`)
-3. Backs off entirely if `d76.exception.enabled=false` (`@ConditionalOnProperty`)
-4. Collects all `ApiErrorResponseCustomizer` beans from the context and invokes them in order before sealing the response
 
 ---
 
@@ -143,7 +135,7 @@ Your Code
 The moment you add the dependency, three exception handlers are active:
 
 | Exception                         | HTTP Status                 | Behaviour                                  |
-|-----------------------------------|-----------------------------|-------------------------------------------|
+|-----------------------------------|-----------------------------|--------------------------------------------|
 | `BusinessException`               | Defined by your `ErrorCode` | Maps your domain error to a typed response |
 | `MethodArgumentNotValidException` | 400                         | Returns per-field validation failures      |
 | `Exception` (catch-all)           | 500                         | Prevents stack trace leakage to clients    |
@@ -241,11 +233,13 @@ The handler reads the HTTP status directly from your `ErrorCode` and maps it to 
 | `INTERNAL_SERVER_ERROR`  | 500    | Internal server error            |
 | `SERVICE_UNAVAILABLE`    | 503    | Service temporarily unavailable  |
 
+Use them directly or as a reference when defining your own enums.
+
 ---
 
-## Extending Responses — The Customizer Pattern
+## Adding Custom Fields — The Customizer Pattern
 
-Need `traceId`, `tenantId`, or any platform-specific field on your error responses? Register an `ApiErrorResponseCustomizer` bean. The handler invokes all registered customizers before sealing the response — no handler duplication, no library forking required.
+Need `traceId`, `tenantId`, or any domain-specific field on your error responses? Register an `ApiErrorResponseCustomizer` bean. The handler invokes it before finalizing every response — no handler duplication, no library forking required.
 
 ### Example — Attach a trace ID from a request header
 
@@ -291,17 +285,19 @@ public ApiErrorResponseCustomizer authProviderCustomizer() {
 }
 ```
 
-Multiple customizers can be registered. They are invoked sequentially and operate on the same builder instance. Customizers are additive — they cannot remove fields added by earlier customizers. The response is finalized and made immutable only after all customizers have run.
+### How customizers work
+
+Multiple customizers can be registered. They are invoked sequentially and operate on the same response builder. Customizers are additive and cannot remove extensions added by others. The response is finalized and made immutable only after all customizers have run.
 
 ---
 
-## Back-off Behavior
+## Overriding the Global Handler
 
 If your application defines its own `@RestControllerAdvice`, this starter automatically backs off and does not register its handler. Your handler takes full precedence — the starter is non-intrusive by design.
 
 ---
 
-## Disabling Auto-Configuration
+## Disable Auto Configuration
 
 Opt out entirely via application properties:
 
@@ -331,7 +327,7 @@ d76-spring-exception/
 │   ├── GlobalExceptionHandler.java         # @RestControllerAdvice + customizer pipeline
 │   └── web/
 │       ├── ApiErrorResponse.java           # Immutable record — the JSON contract
-│       └── ApiErrorResponseCustomizer.java # Extension point for consumers
+│       └── ApiErrorResponseCustomizer.java # Extension hook for consumers
 │
 └── d76-spring-boot-starter-exception       # The one dependency you actually add
     └── pom.xml                             # Pulls in autoconfigure transitively
@@ -341,18 +337,12 @@ d76-spring-exception/
 
 If you have a non-web module — a Kafka consumer, a batch job, a shared domain library — depend on `d76-spring-exception-core` directly. It carries zero Spring Web dependency and lets you throw `BusinessException` anywhere Java runs.
 
-**Maven:**
 ```xml
 <dependency>
-    <groupId>com.github.dhanesh76</groupId>
+    <groupId>dev.d76</groupId>
     <artifactId>d76-spring-exception-core</artifactId>
-    <version>v1.0.0</version>
+    <version>1.0.0</version>
 </dependency>
-```
-
-**Gradle:**
-```kotlin
-implementation("com.github.dhanesh76:d76-spring-exception-core:v1.0.0")
 ```
 
 ---
@@ -374,8 +364,9 @@ The goal is consistency without control — your services speak the same error l
 ## Roadmap
 
 - [ ] Publish to Maven Central
+- [ ] `@ConditionalOnMissingBean` back-off implementation
+- [ ] `enabled` property implementation
 - [ ] Integration tests via `ApplicationContextRunner`
-- [ ] `ProblemDetail` response format (RFC 9457) as an opt-in alternative
 
 ---
 
