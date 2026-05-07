@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
@@ -88,5 +89,17 @@ public final class GlobalExceptionHandler {
         for (var customizer : customizers) {
             customizer.customize(builder, ex, request, response);
         }
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        ApiErrorResponse response = ApiErrorResponse.builderFrom(
+                        CommonErrorCode.BAD_REQUEST, request)
+                .build();
+
+        return ResponseEntity.badRequest().body(response);
     }
 }
