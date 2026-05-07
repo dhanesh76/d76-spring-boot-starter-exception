@@ -92,29 +92,31 @@ public final class GlobalExceptionHandler {
     private String resolveMessage(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();
 
-        if (cause instanceof InvalidFormatException ife) {
-            String fieldPath = ife.getPath().stream()
-                    .map(JsonMappingException.Reference::getFieldName)
-                    .collect(Collectors.joining("."));
+        // Jackson 3 may wrap deeper — unwrap the chain
+        while (cause != null) {
+            if (cause instanceof InvalidFormatException ife) {
+                String fieldPath = ife.getPath().stream()
+                        .map(JsonMappingException.Reference::getFieldName)
+                        .collect(Collectors.joining("."));
 
-            if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
-                String validValues = Arrays.stream(ife.getTargetType().getEnumConstants())
-                        .map(Object::toString)
-                        .collect(Collectors.joining(", "));
-                return String.format(
-                        "Invalid value for field '%s'. Accepted values: [%s]",
-                        fieldPath, validValues
-                );
+                if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+                    String validValues = Arrays.stream(ife.getTargetType().getEnumConstants())
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", "));
+                    return String.format(
+                            "Invalid value for field '%s'. Accepted values: [%s]",
+                            fieldPath, validValues
+                    );
+                }
+
+                return String.format("Invalid value for field '%s'", fieldPath);
             }
 
-            return String.format(
-                    "Invalid value for field '%s'",
-                    fieldPath
-            );
-        }
+            if (cause instanceof JsonParseException) {
+                return "Request body is malformed or not valid JSON";
+            }
 
-        if (cause instanceof JsonParseException) {
-            return "Request body is malformed or not valid JSON";
+            cause = cause.getCause();
         }
 
         if (ex.getMessage() != null && ex.getMessage().contains("Required request body")) {
