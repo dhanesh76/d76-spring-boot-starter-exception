@@ -70,6 +70,18 @@ public final class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getHttpStatus()).body(responseBuilder.build());
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        ApiErrorResponse response = ApiErrorResponse.builderFrom(
+                        CommonErrorCode.BAD_REQUEST, request)
+                .build();
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiErrorResponse> handleException(
             Exception ex,
@@ -89,17 +101,5 @@ public final class GlobalExceptionHandler {
         for (var customizer : customizers) {
             customizer.customize(builder, ex, request, response);
         }
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiErrorResponse> handleMessageNotReadable(
-            HttpMessageNotReadableException ex,
-            HttpServletRequest request) {
-
-        ApiErrorResponse response = ApiErrorResponse.builderFrom(
-                        CommonErrorCode.BAD_REQUEST, request)
-                .build();
-
-        return ResponseEntity.badRequest().body(response);
     }
 }
